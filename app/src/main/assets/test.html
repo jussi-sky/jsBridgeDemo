@@ -1,0 +1,92 @@
+<html>
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type">
+    <title>
+        js调用java
+    </title>
+</head>
+
+<body>
+
+<p>
+    <xmp id="show">
+    </xmp>
+</p>
+<p>
+    <input type="text" id="text1" value="username"/>
+</p>
+<p>
+    <input type="text" id="text2" value="password"/>
+</p>
+<p>
+    <input type="button" id="enter" value="发消息给Native" onclick="testClick();"/>
+</p>
+<p>
+    <input type="button" id="enter1" value="调用Native方法" onclick="testClick1();"/>
+</p>
+
+</body>
+<script>
+
+        function testClick() {
+            var username = document.getElementById("text1").value;
+            var password = document.getElementById("text2").value;
+
+            //send message to native
+            var data = {'username':username,'password':password};
+            window.WebViewJavascriptBridge.send(
+                data
+                , function(responseData) {
+                    document.getElementById("show").innerHTML = "repsonseData from java, data = " + responseData
+                }
+            );
+
+        }
+
+        function testClick1() {
+
+            //call native method
+            window.WebViewJavascriptBridge.callHandler(
+                'submitFromWeb'
+                , {'param': 'Jussi '}
+                , function(responseData) {
+                    document.getElementById("show").innerHTML = "responseData from java, data = " + responseData;
+                }
+            );
+        }
+
+        function bridgeLog(logContent) {
+            document.getElementById("show").innerHTML = logContent;
+        }
+
+        function connectWebViewJavascriptBridge(callback) {
+            if (window.WebViewJavascriptBridge) {
+                callback(WebViewJavascriptBridge)
+            } else {
+                document.addEventListener(
+                    'WebViewJavascriptBridgeReady'
+                    , function() {
+                        callback(WebViewJavascriptBridge)
+                    },
+                    false
+                );
+            }
+        }
+
+        connectWebViewJavascriptBridge(function(bridge) {
+            bridge.init(function(message, responseCallback) {
+                console.log('JS got a message', message);
+                var data = {
+                    'Javascript Responds': 'Test'
+                };
+
+                if (responseCallback) {
+                    console.log('JS responding with', data);
+                    responseCallback(data);
+                }
+            });
+        })
+
+</script>
+
+</html>
